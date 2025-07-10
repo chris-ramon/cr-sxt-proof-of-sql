@@ -162,7 +162,7 @@ impl<S: Scalar> MultilinearExtension<S> for &Column<'_, S> {
             Column::Int(c) => MultilinearExtension::<S>::id(c),
             Column::BigInt(c) | Column::TimestampTZ(_, _, c) => MultilinearExtension::<S>::id(c),
             Column::Int128(c) => MultilinearExtension::<S>::id(c),
-            Column::Nullable(inner_col, _) => inner_col.id_column(),
+            Column::Nullable(inner_col, _) => inner_col.as_ref().id_column(),
         }
     }
 }

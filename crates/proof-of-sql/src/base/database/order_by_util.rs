@@ -159,12 +159,9 @@ pub(crate) fn compare_indexes_by_owned_columns_with_direction<S: Scalar>(
                 OwnedColumn::VarBinary(col) => col[i].cmp(&col[j]),
                 OwnedColumn::Nullable(inner_col, null_bitmap) => {
                     match (null_bitmap[i], null_bitmap[j]) {
-                        (true, true) => compare_indexes_by_owned_columns(
-                            &[inner_col.as_ref().clone()],
-                            &[(0, true)],
-                            i,
-                            j,
-                        ),
+                        (true, true) => {
+                            compare_indexes_by_owned_columns(&[inner_col.as_ref()], i, j)
+                        }
                         (false, true) => Ordering::Less, // null < non-null
                         (true, false) => Ordering::Greater, // non-null > null
                         (false, false) => Ordering::Equal, // null == null
