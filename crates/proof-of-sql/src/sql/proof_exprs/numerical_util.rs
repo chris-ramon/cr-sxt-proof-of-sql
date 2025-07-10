@@ -604,9 +604,10 @@ pub fn cast_column_with_scaling<'a, S: Scalar>(
 ) -> Column<'a, S> {
     let from_type = from_column.column_type();
     let (scaling_factor, precision, scale) =
-        try_get_scaling_factor_with_precision_and_scale(from_type, to_type).unwrap_or_else(|_| {
-            panic!("Unable to get scaling factor between types {from_type} and {to_type}")
-        });
+        try_get_scaling_factor_with_precision_and_scale(from_type.clone(), to_type.clone())
+            .unwrap_or_else(|_| {
+                panic!("Unable to get scaling factor between types {from_type} and {to_type}")
+            });
     let cast_scalars = alloc.alloc_slice_fill_with(from_column.len(), |i| {
         S::from_wrapping(scaling_factor) * from_column.scalar_at(i).unwrap()
     });

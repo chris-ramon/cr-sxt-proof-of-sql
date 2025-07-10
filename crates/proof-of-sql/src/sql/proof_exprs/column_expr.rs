@@ -41,7 +41,10 @@ impl ColumnExpr {
     /// Wrap the column output name and its type within the [`ColumnField`]
     #[must_use]
     pub fn get_column_field(&self) -> ColumnField {
-        ColumnField::new(self.column_ref.column_id(), *self.column_ref.column_type())
+        ColumnField::new(
+            self.column_ref.column_id(),
+            self.column_ref.column_type().clone(),
+        )
     }
 
     /// Get the column identifier
@@ -57,10 +60,11 @@ impl ColumnExpr {
     /// code in `sql/parse` should have already checked that the column exists.
     #[must_use]
     pub fn fetch_column<'a, S: Scalar>(&self, table: &Table<'a, S>) -> Column<'a, S> {
-        *table
+        table
             .inner_table()
             .get(&self.column_ref.column_id())
             .expect("Column not found")
+            .clone()
     }
 }
 
