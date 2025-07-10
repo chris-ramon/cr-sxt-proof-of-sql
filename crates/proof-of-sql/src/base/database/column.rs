@@ -221,6 +221,13 @@ impl<'a, S: Scalar> Column<'a, S> {
                 ))
             }
             OwnedColumn::TimestampTZ(tu, tz, col) => Column::TimestampTZ(*tu, *tz, col.as_slice()),
+            OwnedColumn::Nullable(inner_col, null_bitmap) => {
+                let inner_column = Self::from_owned_column(inner_col.as_ref(), alloc);
+                Column::Nullable(
+                    alloc.alloc(inner_column),
+                    alloc.alloc_slice_copy(null_bitmap.as_slice()),
+                )
+            }
         }
     }
 
@@ -334,6 +341,16 @@ impl<'a, S: Scalar> Column<'a, S> {
             Self::Int128(col) => S::from(col[index]),
             Self::Scalar(col) | Self::Decimal75(_, _, col) => col[index],
             Self::VarChar((_, scals)) | Self::VarBinary((_, scals)) => scals[index],
+            Self::Nullable(inner_col, null_bitmap) => {
+                if null_bitmap[index] {
+                    inner_col.scalar_at(index)?
+                } else {
+                    // Return None for null values - but this is wrapped in then_some,
+                    // so we need to return some default. This shouldn't happen in practice
+                    // as we check the null bitmap first
+                    S::ZERO
+                }
+            }
         })
     }
 
@@ -352,6 +369,15 @@ impl<'a, S: Scalar> Column<'a, S> {
             Self::Int128(col) => slice_cast_with(col, |i| S::from(i)),
             Self::Scalar(col) => slice_cast_with(col, |i| S::from(i)),
             Self::TimestampTZ(_, _, col) => slice_cast_with(col, |i| S::from(i)),
+            Self::Nullable(inner_col, null_bitmap) => {
+                // For nullable columns, convert inner column but handle nulls
+                let inner_scalars = inner_col.clone().to_scalar();
+                inner_scalars
+                    .into_iter()
+                    .zip(null_bitmap.iter())
+                    .map(|(scalar, &is_valid)| if is_valid { scalar } else { S::ZERO })
+                    .collect()
+            }
         }
     }
 }
@@ -622,6 +648,7 @@ impl ColumnType {
             ColumnType::Int => Some(S::from(i32::MIN)),
             ColumnType::BigInt => Some(S::from(i64::MIN)),
             ColumnType::Int128 => Some(S::from(i128::MIN)),
+            ColumnType::Nullable(inner) => inner.min_scalar(),
             _ => None,
         }
     }
