@@ -42,7 +42,10 @@ impl<C: Commitment> QueryCommitmentsExt<C> for QueryCommitments<C> {
                     table_columns
                         .entry(column.table_ref())
                         .or_default()
-                        .push(ColumnField::new(column.column_id(), *column.column_type()));
+                        .push(ColumnField::new(
+                            column.column_id(),
+                            column.column_type().clone(),
+                        ));
                     table_columns
                 },
             )
@@ -102,7 +105,7 @@ impl<C: Commitment> SchemaAccessor for QueryCommitments<C> {
         table_commitment
             .column_commitments()
             .get_metadata(column_id)
-            .map(|column_metadata| *column_metadata.column_type())
+            .map(|column_metadata| column_metadata.column_type().clone())
     }
 
     /// # Panics
@@ -116,7 +119,7 @@ impl<C: Commitment> SchemaAccessor for QueryCommitments<C> {
             .column_metadata()
             .iter()
             .map(|(identifier, column_metadata)| {
-                (identifier.clone(), *column_metadata.column_type())
+                (identifier.clone(), column_metadata.column_type().clone())
             })
             .collect()
     }

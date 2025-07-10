@@ -224,7 +224,7 @@ impl<'a, S: Scalar> Column<'a, S> {
             OwnedColumn::Nullable(inner_col, null_bitmap) => {
                 let inner_column = Self::from_owned_column(inner_col.as_ref(), alloc);
                 Column::Nullable(
-                    alloc.alloc(inner_column),
+                    Box::new(inner_column),
                     alloc.alloc_slice_copy(null_bitmap.as_slice()),
                 )
             }

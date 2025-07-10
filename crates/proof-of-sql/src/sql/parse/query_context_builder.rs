@@ -213,12 +213,14 @@ impl QueryContextBuilder<'_> {
         let left_dtype = self.visit_expr(left)?;
         let right_dtype = self.visit_expr(right)?;
         match *op {
-            BinaryOperator::And | BinaryOperator::Or => can_and_or_types(left_dtype, right_dtype)
-                .then_some(ColumnType::Boolean)
-                .ok_or(ConversionError::DataTypeMismatch {
-                    left_type: left_dtype.to_string(),
-                    right_type: right_dtype.to_string(),
-                }),
+            BinaryOperator::And | BinaryOperator::Or => {
+                can_and_or_types(left_dtype.clone(), right_dtype.clone())
+                    .then_some(ColumnType::Boolean)
+                    .ok_or(ConversionError::DataTypeMismatch {
+                        left_type: left_dtype.to_string(),
+                        right_type: right_dtype.to_string(),
+                    })
+            }
             BinaryOperator::Eq => Ok(try_equals_types_with_scaling(left_dtype, right_dtype)
                 .map(|()| ColumnType::Boolean)?),
             BinaryOperator::Gt | BinaryOperator::Lt => {
@@ -230,7 +232,7 @@ impl QueryContextBuilder<'_> {
             ),
             BinaryOperator::Multiply => Ok(try_multiply_column_types(left_dtype, right_dtype)?),
             BinaryOperator::Divide => (left_dtype.is_numeric() && right_dtype.is_numeric())
-                .then_some(left_dtype)
+                .then_some(left_dtype.clone())
                 .ok_or_else(|| ConversionError::DataTypeMismatch {
                     left_type: left_dtype.to_string(),
                     right_type: right_dtype.to_string(),
@@ -328,7 +330,7 @@ impl QueryContextBuilder<'_> {
             table_ref: table_ref.clone(),
         })?;
 
-        let column = ColumnRef::new(table_ref.clone(), column_name.clone(), column_type);
+        let column = ColumnRef::new(table_ref.clone(), column_name.clone(), column_type.clone());
 
         self.context.push_column_ref(column_name.clone(), column);
 

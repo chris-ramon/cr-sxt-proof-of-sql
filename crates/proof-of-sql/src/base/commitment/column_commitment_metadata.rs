@@ -59,7 +59,7 @@ impl ColumnCommitmentMetadata {
                 | ColumnType::Decimal75(..),
                 ColumnBounds::NoOrder,
             ) => Ok(ColumnCommitmentMetadata {
-                column_type,
+                column_type: column_type.clone(),
                 bounds,
             }),
             _ => Err(InvalidColumnCommitmentMetadata::TypeBoundsMismatch {
