@@ -386,7 +386,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         let res_right_columns: Vec<_> = raw_res_hat[0..num_columns_u]
             .iter()
             .chain(&raw_res_hat[num_columns_left + 1..])
-            .copied()
+            .cloned()
             .collect();
         first_round_evaluate_membership_check(builder, alloc, &hat_left_columns, &res_left_columns);
         first_round_evaluate_membership_check(
@@ -527,7 +527,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         let res_right_columns: Vec<_> = res_hat[0..num_columns_u] // rho col is right after left columns
             .iter()
             .chain(&res_hat[num_columns_left + 1..])
-            .copied()
+            .cloned()
             .collect();
 
         final_round_evaluate_membership_check(
