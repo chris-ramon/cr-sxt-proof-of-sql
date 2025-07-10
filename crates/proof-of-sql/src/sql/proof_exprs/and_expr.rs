@@ -29,7 +29,7 @@ impl AndExpr {
     pub fn try_new(lhs: Box<DynProofExpr>, rhs: Box<DynProofExpr>) -> AnalyzeResult<Self> {
         let left_datatype = lhs.data_type();
         let right_datatype = rhs.data_type();
-        can_and_or_types(left_datatype, right_datatype)
+        can_and_or_types(left_datatype.clone(), right_datatype.clone())
             .then_some(Self { lhs, rhs })
             .ok_or_else(|| AnalyzeError::DataTypeMismatch {
                 left_type: left_datatype.to_string(),

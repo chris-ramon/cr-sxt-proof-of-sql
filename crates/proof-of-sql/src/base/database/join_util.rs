@@ -181,7 +181,7 @@ pub(crate) fn get_columns_of_table<'a, S: Scalar>(
         .map(|&i| {
             table
                 .column(i)
-                .copied()
+                .cloned()
                 .ok_or(TableOperationError::ColumnIndexOutOfBounds { column_index: i })
         })
         .collect::<TableOperationResult<Vec<_>>>()

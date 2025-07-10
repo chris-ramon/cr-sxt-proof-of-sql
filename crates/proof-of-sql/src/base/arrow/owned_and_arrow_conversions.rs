@@ -105,6 +105,20 @@ impl<S: Scalar> From<OwnedColumn<S>> for ArrayRef {
                 PoSQLTimeUnit::Microsecond => Arc::new(TimestampMicrosecondArray::from(col)),
                 PoSQLTimeUnit::Nanosecond => Arc::new(TimestampNanosecondArray::from(col)),
             },
+            OwnedColumn::Nullable(inner_col, null_bitmap) => {
+                // Convert inner column to array first
+                let inner_array = ArrayRef::from(inner_col.as_ref().clone());
+                // Create null buffer from the bitmap (true = valid, false = null)
+                let null_buffer = arrow::buffer::BooleanBuffer::from(null_bitmap.clone());
+                // Apply null buffer to the array
+                arrow::array::ArrayData::builder(inner_array.data_type().clone())
+                    .len(inner_array.len())
+                    .null_bit_buffer(Some(null_buffer.into()))
+                    .buffers(inner_array.to_data().buffers().to_vec())
+                    .build()
+                    .map(|data| arrow::array::make_array(data))
+                    .unwrap_or(inner_array)
+            }
         }
     }
 }

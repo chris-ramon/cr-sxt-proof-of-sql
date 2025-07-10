@@ -28,7 +28,7 @@ pub struct ColumnCommitmentMetadataMismatch {
 const EXPECT_BOUNDS_MATCH_MESSAGE: &str = "we've already checked the column types match, which is a stronger requirement (mapping of type variants to bounds variants is surjective)";
 
 /// Anonymous metadata associated with a column commitment.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ColumnCommitmentMetadata {
     column_type: ColumnType,
     bounds: ColumnBounds,

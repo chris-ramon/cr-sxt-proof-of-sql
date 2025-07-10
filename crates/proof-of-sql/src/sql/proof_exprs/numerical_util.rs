@@ -569,7 +569,7 @@ pub fn cast_column<'a, S: Scalar>(
         (Column::Scalar(vals), ColumnType::Decimal75(to_precision, to_scale)) => {
             let from_scale = from_type.scale().unwrap();
             assert_eq!(
-                from_scale, to_scale,
+                from_scale, *to_scale,
                 "Casting not supported between {from_type} and {to_type}"
             );
             Column::Decimal75(*to_precision, *to_scale, vals)
