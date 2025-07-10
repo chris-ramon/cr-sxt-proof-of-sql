@@ -21,7 +21,7 @@ use sqlparser::ast::Ident;
 /// Note: The types here should correspond to native SQL database types.
 /// See `<https://ignite.apache.org/docs/latest/sql-reference/data-types>` for
 /// a description of the native types used by Apache Ignite.
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum Column<'a, S: Scalar> {
     /// Boolean columns
@@ -361,7 +361,7 @@ impl<'a, S: Scalar> Column<'a, S> {
 ///
 /// See `<https://ignite.apache.org/docs/latest/sql-reference/data-types>` for
 /// a description of the native types used by Apache Ignite.
-#[derive(Eq, PartialEq, Debug, Clone, Hash, Serialize, Deserialize, Copy)]
+#[derive(Eq, PartialEq, Debug, Clone, Hash, Serialize, Deserialize)]
 #[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub enum ColumnType {
     /// Mapped to bool

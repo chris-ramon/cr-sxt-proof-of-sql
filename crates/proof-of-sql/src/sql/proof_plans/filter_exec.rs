@@ -200,8 +200,8 @@ impl ProverEvaluate for FilterExec {
         // Compute filtered_columns and indexes
         let (filtered_columns, _) = filter_columns(alloc, &columns, selection);
         // 3. Produce MLEs
-        filtered_columns.iter().copied().for_each(|column| {
-            builder.produce_intermediate_mle(column);
+        filtered_columns.iter().for_each(|column| {
+            builder.produce_intermediate_mle(column.clone());
         });
         let res = Table::<'a, S>::try_from_iter_with_options(
             self.aliased_results
