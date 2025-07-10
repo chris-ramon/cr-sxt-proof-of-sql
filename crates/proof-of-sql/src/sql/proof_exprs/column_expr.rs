@@ -67,7 +67,7 @@ impl ColumnExpr {
 impl ProofExpr for ColumnExpr {
     /// Get the data type of the expression
     fn data_type(&self) -> ColumnType {
-        *self.get_column_reference().column_type()
+        self.get_column_reference().column_type().clone()
     }
 
     /// Evaluate the column expression and
