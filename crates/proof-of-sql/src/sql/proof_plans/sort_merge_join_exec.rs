@@ -354,7 +354,7 @@ impl ProverEvaluate for SortMergeJoinExec {
             (num_columns_u == 1),
             "Join on multiple columns not supported yet"
         );
-        let u_0 = u[0].to_scalar();
+        let u_0 = u[0].clone().to_scalar();
         let num_rows_u = u[0].len();
         let alloc_u_0 = alloc.alloc_slice_copy(u_0.as_slice());
         builder.produce_intermediate_mle(alloc_u_0 as &[_]);
@@ -494,7 +494,7 @@ impl ProverEvaluate for SortMergeJoinExec {
             (num_columns_u == 1),
             "Join on multiple columns not supported yet"
         );
-        let u_0 = u[0].to_scalar();
+        let u_0 = u[0].clone().to_scalar();
         let num_rows_u = u[0].len();
         let alloc_u_0 = alloc.alloc_slice_copy(u_0.as_slice());
         let chi_u = alloc.alloc_slice_fill_copy(num_rows_u, true);
