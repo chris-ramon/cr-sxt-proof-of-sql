@@ -207,7 +207,7 @@ impl ProverEvaluate for FilterExec {
             self.aliased_results
                 .iter()
                 .map(|expr| expr.alias.clone())
-                .zip(filtered_columns),
+                .zip(filtered_columns.clone()),
             TableOptions::new(Some(output_length)),
         )
         .expect("Failed to create table from iterator");

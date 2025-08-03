@@ -187,7 +187,7 @@ impl ProverEvaluate for SliceExec {
             self.get_column_result_fields()
                 .into_iter()
                 .map(|expr| expr.name())
-                .zip(filtered_columns),
+                .zip(filtered_columns.clone()),
             TableOptions::new(Some(output_length)),
         )
         .expect("Failed to create table from iterator");
