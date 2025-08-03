@@ -531,8 +531,9 @@ impl ColumnType {
         if !self.is_integer() || !other.is_integer() {
             return None;
         }
-        self.to_integer_bits().and_then(|self_bits| {
+        self.clone().to_integer_bits().and_then(|self_bits| {
             other
+                .clone()
                 .to_integer_bits()
                 .and_then(|other_bits| Self::from_signed_integer_bits(self_bits.max(other_bits)))
         })
@@ -547,8 +548,9 @@ impl ColumnType {
         if !self.is_integer() || !other.is_integer() {
             return None;
         }
-        self.to_integer_bits().and_then(|self_bits| {
+        self.clone().to_integer_bits().and_then(|self_bits| {
             other
+                .clone()
                 .to_integer_bits()
                 .and_then(|other_bits| Self::from_unsigned_integer_bits(self_bits.max(other_bits)))
         })
@@ -678,6 +680,9 @@ impl Display for ColumnType {
             ColumnType::TimestampTZ(timeunit, timezone) => {
                 write!(f, "TIMESTAMP(TIMEUNIT: {timeunit}, TIMEZONE: {timezone})")
             }
+            ColumnType::Nullable(inner_type) => {
+                write!(f, "NULLABLE({})", inner_type)
+            }
         }
     }
 }
@@ -746,7 +751,7 @@ impl ColumnField {
     /// Returns the type of the column
     #[must_use]
     pub fn data_type(&self) -> ColumnType {
-        self.data_type
+        self.data_type.clone()
     }
 }
 
