@@ -343,7 +343,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         .expect("Can not do sort merge join");
         let res_hat = alloc.alloc_slice_fill_iter(raw_res_hat.iter().cloned());
         for column in res_hat {
-            builder.produce_intermediate_mle(column);
+            builder.produce_intermediate_mle(&*column);
         }
         let num_rows_res = left_row_indexes.len();
         // 2. Get and commit the strictly increasing columns, `U`
