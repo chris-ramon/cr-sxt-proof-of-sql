@@ -83,7 +83,7 @@ impl TryFrom<&EVMProofPlan> for CompactPlan {
                 Ok((
                     table_index,
                     column_ref.column_id().to_string(),
-                    *column_ref.column_type(),
+                    column_ref.column_type().clone(),
                 ))
             })
             .try_collect()?;
@@ -116,7 +116,11 @@ impl TryFrom<CompactPlan> for EVMProofPlan {
                     .get_index(*i)
                     .cloned()
                     .ok_or(EVMProofPlanError::TableNotFound)?;
-                Ok(ColumnRef::new(table_ref, Ident::new(ident), *column_type))
+                Ok(ColumnRef::new(
+                    table_ref,
+                    Ident::new(ident),
+                    column_type.clone(),
+                ))
             })
             .try_collect()?;
         let output_column_names: IndexSet<String> = value.output_column_names.into_iter().collect();

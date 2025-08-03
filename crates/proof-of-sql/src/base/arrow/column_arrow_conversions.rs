@@ -33,6 +33,10 @@ impl From<&ColumnType> for DataType {
                 };
                 DataType::Timestamp(arrow_timeunit, arrow_timezone)
             }
+            ColumnType::Nullable(inner_type) => {
+                // Convert the inner type to Arrow and make it nullable
+                DataType::from(inner_type.as_ref())
+            }
         }
     }
 }

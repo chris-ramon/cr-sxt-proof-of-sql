@@ -502,9 +502,9 @@ pub fn cast_column<'a, S: Scalar>(
     from_type: ColumnType,
     to_type: ColumnType,
 ) -> Column<'a, S> {
-    try_cast_types(from_type, to_type)
+    try_cast_types(from_type.clone(), to_type.clone())
         .unwrap_or_else(|_| panic!("Unable to cast between types {from_type} and {to_type}"));
-    match (from_column, to_type) {
+    match (&from_column, &to_type) {
         (
             Column::Boolean(vals),
             ColumnType::TinyInt
@@ -512,7 +512,7 @@ pub fn cast_column<'a, S: Scalar>(
             | ColumnType::Int
             | ColumnType::BigInt
             | ColumnType::Int128,
-        ) => cast_bool_column_to_signed_int_column(alloc, vals, to_type),
+        ) => cast_bool_column_to_signed_int_column(alloc, vals, to_type.clone()),
         (
             Column::TinyInt(_)
             | Column::Uint8(_)
@@ -522,7 +522,7 @@ pub fn cast_column<'a, S: Scalar>(
             | Column::Int128(_),
             ColumnType::Decimal75(precision, 0),
         ) => Column::Decimal75(
-            precision,
+            *precision,
             0,
             alloc.alloc_slice_fill_with(from_column.len(), |i| from_column.scalar_at(i).unwrap())
                 as &[_],
@@ -532,7 +532,7 @@ pub fn cast_column<'a, S: Scalar>(
                 from_scale, to_scale,
                 "Casting not supported between {from_type} and {to_type}"
             );
-            Column::Decimal75(precision, to_scale, scalars)
+            Column::Decimal75(*precision, *to_scale, scalars)
         }
         (
             Column::TinyInt(_)
@@ -547,7 +547,7 @@ pub fn cast_column<'a, S: Scalar>(
             | ColumnType::Int
             | ColumnType::BigInt
             | ColumnType::Int128,
-        ) => cast_int_column_to_int_column(alloc, from_column, to_type),
+        ) => cast_int_column_to_int_column(alloc, from_column.clone(), to_type.clone()),
         (Column::TimestampTZ(_, _, vals), ColumnType::BigInt) => Column::BigInt(vals),
         // This is due to the current arithmetic expressions causing results to be scalars
         (
@@ -564,15 +564,15 @@ pub fn cast_column<'a, S: Scalar>(
                 from_scale, 0,
                 "Casting not supported between {from_type} and {to_type}"
             );
-            cast_scalar_slice_to_int_column(alloc, vals, to_type)
+            cast_scalar_slice_to_int_column(alloc, vals, to_type.clone())
         }
         (Column::Scalar(vals), ColumnType::Decimal75(to_precision, to_scale)) => {
             let from_scale = from_type.scale().unwrap();
             assert_eq!(
-                from_scale, to_scale,
+                from_scale, *to_scale,
                 "Casting not supported between {from_type} and {to_type}"
             );
-            Column::Decimal75(to_precision, to_scale, vals)
+            Column::Decimal75(*to_precision, *to_scale, vals)
         }
         _ => panic!("Casting not supported between {from_type} and {to_type}"),
     }
@@ -586,7 +586,7 @@ pub fn try_get_scaling_factor_with_precision_and_scale(
     from_type: ColumnType,
     to_type: ColumnType,
 ) -> ColumnOperationResult<(U256, u8, i8)> {
-    try_scale_cast_types(from_type, to_type)?;
+    try_scale_cast_types(from_type.clone(), to_type.clone())?;
     let to_precision = to_type.precision_value().unwrap();
     let to_scale = to_type.scale().unwrap();
     let power = u32::try_from(to_scale - from_type.scale().unwrap()).unwrap();
@@ -604,9 +604,10 @@ pub fn cast_column_with_scaling<'a, S: Scalar>(
 ) -> Column<'a, S> {
     let from_type = from_column.column_type();
     let (scaling_factor, precision, scale) =
-        try_get_scaling_factor_with_precision_and_scale(from_type, to_type).unwrap_or_else(|_| {
-            panic!("Unable to get scaling factor between types {from_type} and {to_type}")
-        });
+        try_get_scaling_factor_with_precision_and_scale(from_type.clone(), to_type.clone())
+            .unwrap_or_else(|_| {
+                panic!("Unable to get scaling factor between types {from_type} and {to_type}")
+            });
     let cast_scalars = alloc.alloc_slice_fill_with(from_column.len(), |i| {
         S::from_wrapping(scaling_factor) * from_column.scalar_at(i).unwrap()
     });

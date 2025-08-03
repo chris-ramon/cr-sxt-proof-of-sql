@@ -286,6 +286,13 @@ impl<S: Scalar> OwnedColumn<S> {
                 from_type: ColumnType::Scalar,
                 to_type: ColumnType::VarChar,
             }),
+            ColumnType::Nullable(inner_type) => {
+                // For nullable columns, convert scalars to the inner type
+                // All values are considered non-null when converting from scalars
+                let inner_column = Self::try_from_scalars(scalars, *inner_type)?;
+                let null_bitmap = vec![true; scalars.len()]; // All values are non-null
+                Ok(OwnedColumn::Nullable(Box::new(inner_column), null_bitmap))
+            }
         }
     }
 
@@ -407,6 +414,10 @@ impl<'a, S: Scalar> From<&Column<'a, S>> for OwnedColumn<S> {
             }
             Column::Scalar(col) => OwnedColumn::Scalar(col.to_vec()),
             Column::TimestampTZ(tu, tz, col) => OwnedColumn::TimestampTZ(*tu, *tz, col.to_vec()),
+            Column::Nullable(inner_col, null_bitmap) => {
+                let owned_inner = OwnedColumn::from(inner_col.as_ref());
+                OwnedColumn::Nullable(Box::new(owned_inner), null_bitmap.to_vec())
+            }
         }
     }
 }

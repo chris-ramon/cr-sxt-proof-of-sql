@@ -30,7 +30,7 @@ impl EqualsExpr {
     pub fn try_new(lhs: Box<DynProofExpr>, rhs: Box<DynProofExpr>) -> AnalyzeResult<Self> {
         let left_datatype = lhs.data_type();
         let right_datatype = rhs.data_type();
-        try_equals_types(left_datatype, right_datatype)
+        try_equals_types(left_datatype.clone(), right_datatype.clone())
             .map(|()| Self { lhs, rhs })
             .map_err(|_| AnalyzeError::DataTypeMismatch {
                 left_type: left_datatype.to_string(),

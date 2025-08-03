@@ -166,7 +166,7 @@ impl ProverEvaluate for SliceExec {
             .input
             .first_round_evaluate(builder, alloc, table_map, params)?;
         let input_length = input.num_rows();
-        let columns = input.columns().copied().collect::<Vec<_>>();
+        let columns = input.columns().cloned().collect::<Vec<_>>();
         // 2. select
         let select = get_slice_select(input_length, self.skip, self.fetch);
         // The selected range is (offset_index, max_index]
@@ -179,15 +179,17 @@ impl ProverEvaluate for SliceExec {
         let output_length = max_index - offset_index;
         // Compute filtered_columns
         let (filtered_columns, _) = filter_columns(alloc, &columns, &select);
+        // Store columns in bump allocator to extend lifetime
+        let filtered_columns_alloc = alloc.alloc_slice_fill_iter(filtered_columns.iter().cloned());
         // 3. Produce MLEs
-        filtered_columns.iter().copied().for_each(|column| {
+        for column in &*filtered_columns_alloc {
             builder.produce_intermediate_mle(column);
-        });
+        }
         let res = Table::<'a, S>::try_from_iter_with_options(
             self.get_column_result_fields()
                 .into_iter()
                 .map(|expr| expr.name())
-                .zip(filtered_columns),
+                .zip(filtered_columns_alloc.iter().cloned()),
             TableOptions::new(Some(output_length)),
         )
         .expect("Failed to create table from iterator");
@@ -215,7 +217,7 @@ impl ProverEvaluate for SliceExec {
         let input = self
             .input
             .final_round_evaluate(builder, alloc, table_map, params)?;
-        let columns = input.columns().copied().collect::<Vec<_>>();
+        let columns = input.columns().cloned().collect::<Vec<_>>();
         // 2. select
         let select = get_slice_select(input.num_rows(), self.skip, self.fetch);
         let select_ref: &'a [_] = alloc.alloc_slice_copy(&select);

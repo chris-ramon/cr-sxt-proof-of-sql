@@ -54,7 +54,7 @@ impl PlaceholderExpr {
 
     /// Get the column type of the placeholder
     pub fn column_type(&self) -> ColumnType {
-        self.column_type
+        self.column_type.clone()
     }
 
     /// Replace the placeholder with the correct value in `params`.
@@ -78,7 +78,7 @@ impl PlaceholderExpr {
         if param_value.column_type() != self.column_type {
             return Err(PlaceholderError::InvalidPlaceholderType {
                 index: self.index,
-                expected: self.column_type,
+                expected: self.column_type.clone(),
                 actual: param_value.column_type(),
             });
         }
@@ -88,7 +88,7 @@ impl PlaceholderExpr {
 
 impl ProofExpr for PlaceholderExpr {
     fn data_type(&self) -> ColumnType {
-        self.column_type
+        self.column_type.clone()
     }
 
     #[tracing::instrument(

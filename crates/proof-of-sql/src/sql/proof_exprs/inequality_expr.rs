@@ -37,7 +37,7 @@ impl InequalityExpr {
     ) -> AnalyzeResult<Self> {
         let left_datatype = lhs.data_type();
         let right_datatype = rhs.data_type();
-        try_inequality_types(left_datatype, right_datatype)
+        try_inequality_types(left_datatype.clone(), right_datatype.clone())
             .map(|()| Self { lhs, rhs, is_lt })
             .map_err(|_| AnalyzeError::DataTypeMismatch {
                 left_type: left_datatype.to_string(),

@@ -341,9 +341,9 @@ impl ProverEvaluate for SortMergeJoinExec {
             alloc,
         )
         .expect("Can not do sort merge join");
-        let res_hat = alloc.alloc_slice_copy(raw_res_hat.as_slice());
+        let res_hat = alloc.alloc_slice_fill_iter(raw_res_hat.iter().cloned());
         for column in res_hat {
-            builder.produce_intermediate_mle(*column);
+            builder.produce_intermediate_mle(&*column);
         }
         let num_rows_res = left_row_indexes.len();
         // 2. Get and commit the strictly increasing columns, `U`
@@ -354,7 +354,7 @@ impl ProverEvaluate for SortMergeJoinExec {
             (num_columns_u == 1),
             "Join on multiple columns not supported yet"
         );
-        let u_0 = u[0].to_scalar();
+        let u_0 = u[0].clone().to_scalar();
         let num_rows_u = u[0].len();
         let alloc_u_0 = alloc.alloc_slice_copy(u_0.as_slice());
         builder.produce_intermediate_mle(alloc_u_0 as &[_]);
@@ -386,7 +386,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         let res_right_columns: Vec<_> = raw_res_hat[0..num_columns_u]
             .iter()
             .chain(&raw_res_hat[num_columns_left + 1..])
-            .copied()
+            .cloned()
             .collect();
         first_round_evaluate_membership_check(builder, alloc, &hat_left_columns, &res_left_columns);
         first_round_evaluate_membership_check(
@@ -472,7 +472,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         )
         .expect("Can not do sort merge join");
         // Store in bump, `\hat{J}` in the protocol
-        let res_hat = alloc.alloc_slice_copy(raw_res_hat.as_slice());
+        let res_hat = alloc.alloc_slice_fill_iter(raw_res_hat.iter().cloned());
 
         let num_rows_res = left_row_indexes.len();
         let chi_res = alloc.alloc_slice_fill_copy(num_rows_res, true);
@@ -494,7 +494,7 @@ impl ProverEvaluate for SortMergeJoinExec {
             (num_columns_u == 1),
             "Join on multiple columns not supported yet"
         );
-        let u_0 = u[0].to_scalar();
+        let u_0 = u[0].clone().to_scalar();
         let num_rows_u = u[0].len();
         let alloc_u_0 = alloc.alloc_slice_copy(u_0.as_slice());
         let chi_u = alloc.alloc_slice_fill_copy(num_rows_u, true);
@@ -527,7 +527,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         let res_right_columns: Vec<_> = res_hat[0..num_columns_u] // rho col is right after left columns
             .iter()
             .chain(&res_hat[num_columns_left + 1..])
-            .copied()
+            .cloned()
             .collect();
 
         final_round_evaluate_membership_check(

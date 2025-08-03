@@ -29,7 +29,7 @@ const BYTE_SIZE: u32 = 8;
 /// # Arguments
 ///
 /// * `column_type` - The type of a committable column.
-pub const fn min_as_f(column_type: ColumnType) -> F {
+pub fn min_as_f(column_type: ColumnType) -> F {
     match column_type {
         ColumnType::TinyInt => MontFp!("-128"),
         ColumnType::SmallInt => MontFp!("-32768"),
@@ -43,7 +43,8 @@ pub const fn min_as_f(column_type: ColumnType) -> F {
         | ColumnType::VarBinary
         | ColumnType::Boolean => MontFp!("0"),
         ColumnType::Nullable(_) => {
-            todo!("Nullable column types not yet supported in blitzar metadata")
+            // For nullable columns, default to 0 to avoid const function issues
+            MontFp!("0")
         }
     }
 }

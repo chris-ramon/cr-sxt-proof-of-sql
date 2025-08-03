@@ -27,8 +27,11 @@ impl CastExpr {
     /// Creates a new `CastExpr`
     pub fn try_new(from_expr: Box<DynProofExpr>, to_type: ColumnType) -> AnalyzeResult<Self> {
         let from_datatype = from_expr.data_type();
-        try_cast_types(from_datatype, to_type)
-            .map(|()| Self { from_expr, to_type })
+        try_cast_types(from_datatype.clone(), to_type.clone())
+            .map(|()| Self {
+                from_expr,
+                to_type: to_type.clone(),
+            })
             .map_err(|_| AnalyzeError::DataTypeMismatch {
                 left_type: from_datatype.to_string(),
                 right_type: to_type.to_string(),
@@ -48,7 +51,7 @@ impl CastExpr {
 
 impl ProofExpr for CastExpr {
     fn data_type(&self) -> ColumnType {
-        self.to_type
+        self.to_type.clone()
     }
 
     fn first_round_evaluate<'a, S: Scalar>(
@@ -62,7 +65,7 @@ impl ProofExpr for CastExpr {
             alloc,
             uncasted_result,
             self.from_expr.data_type(),
-            self.to_type,
+            self.to_type.clone(),
         ))
     }
 
@@ -80,7 +83,7 @@ impl ProofExpr for CastExpr {
             alloc,
             uncasted_result,
             self.from_expr.data_type(),
-            self.to_type,
+            self.to_type.clone(),
         ))
     }
 

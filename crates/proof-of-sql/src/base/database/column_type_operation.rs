@@ -138,7 +138,7 @@ fn try_divide_modulo_column_types(
     rhs: ColumnType,
 ) -> ColumnOperationResult<(ColumnType, ColumnType)> {
     if lhs.is_integer() && lhs.is_signed() && rhs.is_integer() && rhs.is_signed() {
-        Ok((lhs, lhs))
+        Ok((lhs.clone(), lhs))
     } else {
         Err(ColumnOperationError::BinaryOperationInvalidColumnType {
             operator: "/%".to_string(),
@@ -196,7 +196,7 @@ pub fn try_divide_column_types(
 /// Verifies that `from` can be cast to `to`. For now, this supports a limited number of casts.
 #[expect(clippy::missing_panics_doc)]
 pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult<()> {
-    match (from, to) {
+    let result = match (&from, &to) {
         (
             ColumnType::Boolean,
             ColumnType::TinyInt
@@ -226,12 +226,13 @@ pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult
                 && to.scale() == from.scale()
         }
         _ => false,
-    }
-    .then_some(())
-    .ok_or(ColumnOperationError::CastingError {
-        left_type: from,
-        right_type: to,
-    })
+    };
+    result
+        .then_some(())
+        .ok_or(ColumnOperationError::CastingError {
+            left_type: from,
+            right_type: to,
+        })
 }
 
 /// Verifies that `from` can be cast to `to`.
@@ -239,7 +240,7 @@ pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult
 /// For example Deciaml(6,1) can be cast to Decimal(7,1), but not vice versa.
 #[expect(clippy::missing_panics_doc)]
 pub fn try_scale_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult<()> {
-    match (from, to) {
+    let result = match (&from, &to) {
         (
             ColumnType::TinyInt
             | ColumnType::Uint8
@@ -253,25 +254,26 @@ pub fn try_scale_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperation
             let from_precision = i16::from(from.precision_value().unwrap());
             let from_scale = i16::from(from.scale().unwrap());
             let to_precision = i16::from(precision.value());
-            let to_scale = i16::from(scale);
+            let to_scale = i16::from(*scale);
             to_scale >= from_scale && (to_precision - to_scale) >= (from_precision - from_scale)
         }
         (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _)) => {
             to.scale().unwrap() >= from.scale().unwrap()
         }
         _ => false,
-    }
-    .then_some(())
-    .ok_or(ColumnOperationError::ScaleCastingError {
-        left_type: from,
-        right_type: to,
-    })
+    };
+    result
+        .then_some(())
+        .ok_or(ColumnOperationError::ScaleCastingError {
+            left_type: from,
+            right_type: to,
+        })
 }
 
 /// Verfies that the equality operator can be used on the two types
 pub fn try_equals_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperationResult<()> {
     (matches!(
-        (lhs, rhs),
+        (&lhs, &rhs),
         (ColumnType::VarChar, ColumnType::VarChar)
             | (ColumnType::VarBinary, ColumnType::VarBinary)
             | (ColumnType::Boolean, ColumnType::Boolean)
@@ -279,7 +281,7 @@ pub fn try_equals_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperationResu
             | (ColumnType::Scalar, _)
     ) || (lhs.is_numeric() && rhs.is_numeric() && lhs.scale() == rhs.scale())
         || matches!(
-            (lhs, rhs),
+            (&lhs, &rhs),
             (ColumnType::TimestampTZ(left_tu, _), ColumnType::TimestampTZ(right_tu, _)) if
                 left_tu == right_tu
         ))
@@ -300,11 +302,11 @@ pub fn try_inequality_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperation
         && !matches!(rhs, ColumnType::Decimal75(precision, _) if precision.value() > 38)
         && (lhs.is_numeric() && rhs.is_numeric() && lhs.scale() == rhs.scale()
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::Boolean, ColumnType::Boolean)
             )
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::TimestampTZ(left_tu, _), ColumnType::TimestampTZ(right_tu, _)) if
                 left_tu == right_tu
         )))
@@ -322,7 +324,7 @@ pub fn try_equals_types_with_scaling(
     rhs: ColumnType,
 ) -> ColumnOperationResult<()> {
     (matches!(
-        (lhs, rhs),
+        (&lhs, &rhs),
         (ColumnType::VarChar, ColumnType::VarChar)
             | (ColumnType::VarBinary, ColumnType::VarBinary)
             | (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _))
@@ -350,7 +352,7 @@ pub fn try_inequality_types_with_scaling(
         && !matches!(rhs, ColumnType::Decimal75(precision, _) if precision.value() > 38)
         && (lhs.is_numeric() && rhs.is_numeric()
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::Boolean, ColumnType::Boolean)
                     | (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _))
             )))

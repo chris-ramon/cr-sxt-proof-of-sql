@@ -134,10 +134,13 @@ impl ProverEvaluate for UnionExec {
             .collect::<PlaceholderResult<Vec<_>>>()?;
         let res = table_union(&inputs, alloc, self.schema.clone()).expect("Failed to union tables");
 
+        // Store columns in bump allocator to extend lifetime
+        let res_columns: Vec<_> = res.columns().cloned().collect();
+        let res_columns_alloc = alloc.alloc_slice_fill_iter(res_columns.iter().cloned());
         // Produce intermediate MLEs for the union
-        res.columns().copied().for_each(|column| {
+        for column in &*res_columns_alloc {
             builder.produce_intermediate_mle(column);
-        });
+        }
         builder.produce_chi_evaluation_length(res.num_rows());
         Ok(res)
     }
@@ -159,7 +162,7 @@ impl ProverEvaluate for UnionExec {
             .iter()
             .map(|input| -> PlaceholderResult<_> {
                 let table = input.final_round_evaluate(builder, alloc, table_map, params)?;
-                let input_table = table.columns().copied().collect::<Vec<_>>();
+                let input_table = table.columns().cloned().collect::<Vec<_>>();
                 let (c_star, _) = fold_log_gadget.final_round_evaluate(
                     builder,
                     alloc,
@@ -172,7 +175,7 @@ impl ProverEvaluate for UnionExec {
             .into_iter()
             .unzip();
         let res = table_union(&inputs, alloc, self.schema.clone()).expect("Failed to union tables");
-        let output_columns: Vec<Column<'a, S>> = res.columns().copied().collect::<Vec<_>>();
+        let output_columns: Vec<Column<'a, S>> = res.columns().cloned().collect::<Vec<_>>();
         // No need to produce intermediate MLEs for `d_fold` because it is
         // the sum of `c_fold`
         let (d_star, _) =

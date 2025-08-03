@@ -21,7 +21,7 @@ use sqlparser::ast::Ident;
 /// Note: The types here should correspond to native SQL database types.
 /// See `<https://ignite.apache.org/docs/latest/sql-reference/data-types>` for
 /// a description of the native types used by Apache Ignite.
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum Column<'a, S: Scalar> {
     /// Boolean columns
@@ -221,6 +221,13 @@ impl<'a, S: Scalar> Column<'a, S> {
                 ))
             }
             OwnedColumn::TimestampTZ(tu, tz, col) => Column::TimestampTZ(*tu, *tz, col.as_slice()),
+            OwnedColumn::Nullable(inner_col, null_bitmap) => {
+                let inner_column = Self::from_owned_column(inner_col.as_ref(), alloc);
+                Column::Nullable(
+                    Box::new(inner_column),
+                    alloc.alloc_slice_copy(null_bitmap.as_slice()),
+                )
+            }
         }
     }
 
@@ -334,6 +341,16 @@ impl<'a, S: Scalar> Column<'a, S> {
             Self::Int128(col) => S::from(col[index]),
             Self::Scalar(col) | Self::Decimal75(_, _, col) => col[index],
             Self::VarChar((_, scals)) | Self::VarBinary((_, scals)) => scals[index],
+            Self::Nullable(inner_col, null_bitmap) => {
+                if null_bitmap[index] {
+                    inner_col.scalar_at(index)?
+                } else {
+                    // Return None for null values - but this is wrapped in then_some,
+                    // so we need to return some default. This shouldn't happen in practice
+                    // as we check the null bitmap first
+                    S::ZERO
+                }
+            }
         })
     }
 
@@ -352,6 +369,15 @@ impl<'a, S: Scalar> Column<'a, S> {
             Self::Int128(col) => slice_cast_with(col, |i| S::from(i)),
             Self::Scalar(col) => slice_cast_with(col, |i| S::from(i)),
             Self::TimestampTZ(_, _, col) => slice_cast_with(col, |i| S::from(i)),
+            Self::Nullable(inner_col, null_bitmap) => {
+                // For nullable columns, convert inner column but handle nulls
+                let inner_scalars = inner_col.clone().to_scalar();
+                inner_scalars
+                    .into_iter()
+                    .zip(null_bitmap.iter())
+                    .map(|(scalar, &is_valid)| if is_valid { scalar } else { S::ZERO })
+                    .collect()
+            }
         }
     }
 }
@@ -361,7 +387,7 @@ impl<'a, S: Scalar> Column<'a, S> {
 ///
 /// See `<https://ignite.apache.org/docs/latest/sql-reference/data-types>` for
 /// a description of the native types used by Apache Ignite.
-#[derive(Eq, PartialEq, Debug, Clone, Hash, Serialize, Deserialize, Copy)]
+#[derive(Eq, PartialEq, Debug, Clone, Hash, Serialize, Deserialize)]
 #[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub enum ColumnType {
     /// Mapped to bool
@@ -505,8 +531,9 @@ impl ColumnType {
         if !self.is_integer() || !other.is_integer() {
             return None;
         }
-        self.to_integer_bits().and_then(|self_bits| {
+        self.clone().to_integer_bits().and_then(|self_bits| {
             other
+                .clone()
                 .to_integer_bits()
                 .and_then(|other_bits| Self::from_signed_integer_bits(self_bits.max(other_bits)))
         })
@@ -521,8 +548,9 @@ impl ColumnType {
         if !self.is_integer() || !other.is_integer() {
             return None;
         }
-        self.to_integer_bits().and_then(|self_bits| {
+        self.clone().to_integer_bits().and_then(|self_bits| {
             other
+                .clone()
                 .to_integer_bits()
                 .and_then(|other_bits| Self::from_unsigned_integer_bits(self_bits.max(other_bits)))
         })
@@ -622,6 +650,7 @@ impl ColumnType {
             ColumnType::Int => Some(S::from(i32::MIN)),
             ColumnType::BigInt => Some(S::from(i64::MIN)),
             ColumnType::Int128 => Some(S::from(i128::MIN)),
+            ColumnType::Nullable(inner) => inner.min_scalar(),
             _ => None,
         }
     }
@@ -650,6 +679,9 @@ impl Display for ColumnType {
             ColumnType::Scalar => write!(f, "SCALAR"),
             ColumnType::TimestampTZ(timeunit, timezone) => {
                 write!(f, "TIMESTAMP(TIMEUNIT: {timeunit}, TIMEZONE: {timezone})")
+            }
+            ColumnType::Nullable(inner_type) => {
+                write!(f, "NULLABLE({})", inner_type)
             }
         }
     }
@@ -719,7 +751,7 @@ impl ColumnField {
     /// Returns the type of the column
     #[must_use]
     pub fn data_type(&self) -> ColumnType {
-        self.data_type
+        self.data_type.clone()
     }
 }
 

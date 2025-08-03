@@ -76,14 +76,14 @@ impl<'a, CP: CommitmentEvaluationProof> TestAccessor<CP::Commitment> for TableTe
 /// indicating that an invalid column reference was provided.
 impl<'a, CP: CommitmentEvaluationProof> DataAccessor<CP::Scalar> for TableTestAccessor<'a, CP> {
     fn get_column(&self, table_ref: &TableRef, column_id: &Ident) -> Column<'a, CP::Scalar> {
-        *self
-            .tables
+        self.tables
             .get(table_ref)
             .unwrap()
             .0
             .inner_table()
             .get(column_id)
             .unwrap()
+            .clone()
     }
 }
 

@@ -129,6 +129,10 @@ impl<'a, S: Scalar> From<&Column<'a, S>> for CommittableColumn<'a> {
                 CommittableColumn::VarBinary(as_limbs)
             }
             Column::TimestampTZ(tu, tz, times) => CommittableColumn::TimestampTZ(*tu, *tz, times),
+            Column::Nullable(inner_col, _) => {
+                // For nullable columns, commit to the inner column data
+                CommittableColumn::from(inner_col.as_ref())
+            }
         }
     }
 }
@@ -175,6 +179,10 @@ impl<'a, S: Scalar> From<&'a OwnedColumn<S>> for CommittableColumn<'a> {
             ),
             OwnedColumn::TimestampTZ(tu, tz, times) => {
                 CommittableColumn::TimestampTZ(*tu, *tz, times as &[_])
+            }
+            OwnedColumn::Nullable(inner_col, _) => {
+                // For nullable columns, commit to the inner column data
+                CommittableColumn::from(inner_col.as_ref())
             }
         }
     }

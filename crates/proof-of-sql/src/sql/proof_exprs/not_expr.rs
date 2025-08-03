@@ -27,7 +27,7 @@ impl NotExpr {
     /// Create logical NOT expression
     pub fn try_new(expr: Box<DynProofExpr>) -> AnalyzeResult<Self> {
         let expr_type = expr.data_type();
-        can_not_type(expr_type)
+        can_not_type(expr_type.clone())
             .then_some(Self { expr })
             .ok_or(AnalyzeError::InvalidDataType { expr_type })
     }

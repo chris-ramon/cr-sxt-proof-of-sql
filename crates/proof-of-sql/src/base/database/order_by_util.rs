@@ -34,7 +34,7 @@ pub(crate) fn compare_indexes_by_columns<S: Scalar>(
             Column::VarBinary((col, _)) => col[i].cmp(col[j]),
             Column::Nullable(inner_col, null_bitmap) => {
                 match (null_bitmap[i], null_bitmap[j]) {
-                    (true, true) => compare_column_at_indices(inner_col, i, j),
+                    (true, true) => compare_indexes_by_columns(&[inner_col.as_ref().clone()], i, j),
                     (false, true) => Ordering::Less, // null < non-null
                     (true, false) => Ordering::Greater, // non-null > null
                     (false, false) => Ordering::Equal, // null == null
@@ -159,7 +159,9 @@ pub(crate) fn compare_indexes_by_owned_columns_with_direction<S: Scalar>(
                 OwnedColumn::VarBinary(col) => col[i].cmp(&col[j]),
                 OwnedColumn::Nullable(inner_col, null_bitmap) => {
                     match (null_bitmap[i], null_bitmap[j]) {
-                        (true, true) => compare_owned_column_at_indices(inner_col, i, j),
+                        (true, true) => {
+                            compare_indexes_by_owned_columns(&[inner_col.as_ref()], i, j)
+                        }
                         (false, true) => Ordering::Less, // null < non-null
                         (true, false) => Ordering::Greater, // non-null > null
                         (false, false) => Ordering::Equal, // null == null

@@ -30,10 +30,10 @@ impl ScalingCastExpr {
     /// Creates a new `ScalingCastExpr`
     pub fn try_new(from_expr: Box<DynProofExpr>, to_type: ColumnType) -> AnalyzeResult<Self> {
         let from_datatype = from_expr.data_type();
-        try_get_scaling_factor_with_precision_and_scale(from_datatype, to_type)
+        try_get_scaling_factor_with_precision_and_scale(from_datatype.clone(), to_type.clone())
             .map(|(scaling_factor, _, _)| Self {
                 from_expr,
-                to_type,
+                to_type: to_type.clone(),
                 scaling_factor: scaling_factor.into(),
             })
             .map_err(|_| AnalyzeError::DataTypeMismatch {
@@ -45,7 +45,7 @@ impl ScalingCastExpr {
 
 impl ProofExpr for ScalingCastExpr {
     fn data_type(&self) -> ColumnType {
-        self.to_type
+        self.to_type.clone()
     }
 
     fn first_round_evaluate<'a, S: Scalar>(
@@ -58,7 +58,7 @@ impl ProofExpr for ScalingCastExpr {
         Ok(cast_column_with_scaling(
             alloc,
             uncasted_result,
-            self.to_type,
+            self.to_type.clone(),
         ))
     }
 
@@ -75,7 +75,7 @@ impl ProofExpr for ScalingCastExpr {
         Ok(cast_column_with_scaling(
             alloc,
             uncasted_result,
-            self.to_type,
+            self.to_type.clone(),
         ))
     }
 

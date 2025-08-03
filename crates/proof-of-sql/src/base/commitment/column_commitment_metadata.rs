@@ -28,7 +28,7 @@ pub struct ColumnCommitmentMetadataMismatch {
 const EXPECT_BOUNDS_MATCH_MESSAGE: &str = "we've already checked the column types match, which is a stronger requirement (mapping of type variants to bounds variants is surjective)";
 
 /// Anonymous metadata associated with a column commitment.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ColumnCommitmentMetadata {
     column_type: ColumnType,
     bounds: ColumnBounds,
@@ -43,7 +43,7 @@ impl ColumnCommitmentMetadata {
         column_type: ColumnType,
         bounds: ColumnBounds,
     ) -> Result<ColumnCommitmentMetadata, InvalidColumnCommitmentMetadata> {
-        match (column_type, bounds) {
+        match (column_type.clone(), bounds) {
             (ColumnType::Uint8, ColumnBounds::Uint8(_))
             | (ColumnType::TinyInt, ColumnBounds::TinyInt(_))
             | (ColumnType::SmallInt, ColumnBounds::SmallInt(_))
@@ -59,7 +59,7 @@ impl ColumnCommitmentMetadata {
                 | ColumnType::Decimal75(..),
                 ColumnBounds::NoOrder,
             ) => Ok(ColumnCommitmentMetadata {
-                column_type,
+                column_type: column_type.clone(),
                 bounds,
             }),
             _ => Err(InvalidColumnCommitmentMetadata::TypeBoundsMismatch {
