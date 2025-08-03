@@ -171,6 +171,10 @@ pub(crate) fn sum_aggregate_column_by_index_counts<'a, S: Scalar>(
         | Column::VarBinary(_) => {
             unreachable!("SUM can not be applied to non-numeric types")
         }
+        Column::Nullable(inner_col, _) => {
+            // For nullable columns, apply SUM to the inner column
+            sum_aggregate_column_by_index_counts(alloc, inner_col, counts, indexes)
+        }
     }
 }
 

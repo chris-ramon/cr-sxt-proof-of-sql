@@ -127,6 +127,42 @@ impl<CP: CommitmentEvaluationProof> DataAccessor<CP::Scalar> for OwnedTableTestA
                 Column::VarBinary((col_as_slices, scals))
             }
             OwnedColumn::TimestampTZ(tu, tz, col) => Column::TimestampTZ(*tu, *tz, col),
+            OwnedColumn::Nullable(inner_col, null_bitmap) => {
+                let inner_column = match inner_col.as_ref() {
+                    OwnedColumn::Boolean(col) => Column::Boolean(col),
+                    OwnedColumn::TinyInt(col) => Column::TinyInt(col),
+                    OwnedColumn::SmallInt(col) => Column::SmallInt(col),
+                    OwnedColumn::Int(col) => Column::Int(col),
+                    OwnedColumn::BigInt(col) => Column::BigInt(col),
+                    OwnedColumn::Int128(col) => Column::Int128(col),
+                    OwnedColumn::Decimal75(precision, scale, col) => {
+                        Column::Decimal75(*precision, *scale, col)
+                    }
+                    OwnedColumn::Scalar(col) => Column::Scalar(col),
+                    OwnedColumn::VarChar(col) => {
+                        let scals: &mut [CP::Scalar] = self
+                            .alloc
+                            .alloc_slice_fill_iter(col.iter().map(|s| CP::Scalar::from(s)));
+                        Column::VarChar((col.as_slice(), scals))
+                    }
+                    OwnedColumn::VarBinary(col) => {
+                        let col_as_slices: &mut [&[u8]] = self
+                            .alloc
+                            .alloc_slice_fill_iter(col.iter().map(|b| b.as_slice()));
+                        let scals: &mut [CP::Scalar] = self.alloc.alloc_slice_fill_iter(
+                            col.iter()
+                                .map(|b| CP::Scalar::from_byte_slice_via_hash(b.as_slice())),
+                        );
+                        Column::VarBinary((col_as_slices, scals))
+                    }
+                    OwnedColumn::TimestampTZ(tu, tz, col) => Column::TimestampTZ(*tu, *tz, col),
+                    OwnedColumn::Nullable(_, _) => {
+                        // Nested nullable columns not supported in test accessor
+                        panic!("Nested nullable columns not supported")
+                    }
+                };
+                Column::Nullable(Box::new(inner_column), null_bitmap.as_slice())
+            }
         }
     }
 }

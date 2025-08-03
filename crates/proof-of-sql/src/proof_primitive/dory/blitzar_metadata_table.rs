@@ -42,9 +42,9 @@ pub const fn min_as_f(column_type: ColumnType) -> F {
         | ColumnType::VarChar
         | ColumnType::VarBinary
         | ColumnType::Boolean => MontFp!("0"),
-        ColumnType::Nullable(inner_type) => {
-            // For nullable columns, use the min value of the inner type
-            min_as_f(*inner_type)
+        ColumnType::Nullable(_) => {
+            // For nullable columns, default to 0 to avoid const function issues
+            MontFp!("0")
         }
     }
 }
