@@ -197,6 +197,32 @@ pub fn column_union<'a, S: Scalar>(
                 }) as &[_],
             )
         }
+        ColumnType::Nullable(inner_type) => {
+            // For nullable columns, union the inner columns and combine null bitmaps
+            let inner_columns: Vec<_> = columns
+                .iter()
+                .map(|col| match col {
+                    Column::Nullable(inner_col, _) => inner_col.as_ref().clone(),
+                    _ => unreachable!("All columns should be nullable"),
+                })
+                .collect();
+
+            let inner_union = combine_columns(&inner_columns, inner_type.as_ref(), alloc)?;
+
+            // Combine null bitmaps
+            let mut null_iter = columns.iter().flat_map(|col| match col {
+                Column::Nullable(_, null_bitmap) => null_bitmap.iter().copied(),
+                _ => unreachable!("All columns should be nullable"),
+            });
+
+            let combined_nulls = alloc.alloc_slice_fill_with(len, |_| {
+                null_iter
+                    .next()
+                    .expect("Iterator should have enough elements")
+            });
+
+            Column::Nullable(Box::new(inner_union), combined_nulls)
+        }
     })
 }
 

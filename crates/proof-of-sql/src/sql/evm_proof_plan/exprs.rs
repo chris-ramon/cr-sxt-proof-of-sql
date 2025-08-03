@@ -634,7 +634,7 @@ impl EVMCastExpr {
                 expr.get_from_expr(),
                 column_refs,
             )?),
-            to_type: *expr.to_type(),
+            to_type: expr.to_type().clone(),
         })
     }
 
@@ -644,7 +644,7 @@ impl EVMCastExpr {
     ) -> EVMProofPlanResult<CastExpr> {
         Ok(CastExpr::try_new(
             Box::new(self.from_expr.try_into_proof_expr(column_refs)?),
-            self.to_type,
+            self.to_type.clone(),
         )?)
     }
 }
@@ -666,7 +666,7 @@ impl EVMPlaceholderExpr {
     }
 
     pub(crate) fn to_proof_expr(&self) -> PlaceholderExpr {
-        PlaceholderExpr::new_from_index(self.index, self.column_type)
+        PlaceholderExpr::new_from_index(self.index, self.column_type.clone())
     }
 }
 

@@ -150,7 +150,7 @@ impl EVMTableExec {
         let schema = column_refs
             .iter()
             .filter(|col_ref| col_ref.table_ref() == table_ref.clone())
-            .map(|col_ref| ColumnField::new(col_ref.column_id(), *col_ref.column_type()))
+            .map(|col_ref| ColumnField::new(col_ref.column_id(), col_ref.column_type().clone()))
             .collect();
 
         Ok(TableExec::new(table_ref, schema))
