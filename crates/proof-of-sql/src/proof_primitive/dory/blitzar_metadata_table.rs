@@ -29,7 +29,7 @@ const BYTE_SIZE: u32 = 8;
 /// # Arguments
 ///
 /// * `column_type` - The type of a committable column.
-pub const fn min_as_f(column_type: ColumnType) -> F {
+pub fn min_as_f(column_type: ColumnType) -> F {
     match column_type {
         ColumnType::TinyInt => MontFp!("-128"),
         ColumnType::SmallInt => MontFp!("-32768"),

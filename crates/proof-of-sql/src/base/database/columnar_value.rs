@@ -47,7 +47,7 @@ impl<'a, S: Scalar> ColumnarValue<'a, S> {
         match self {
             Self::Column(column) => {
                 if column.len() == num_rows {
-                    Ok(*column)
+                    Ok(column.clone())
                 } else {
                     Err(ColumnarValueError::ColumnLengthMismatch {
                         columnar_value_length: column.len(),

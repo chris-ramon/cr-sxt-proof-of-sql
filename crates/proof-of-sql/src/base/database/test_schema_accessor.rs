@@ -26,7 +26,7 @@ impl SchemaAccessor for TestSchemaAccessor {
             .get(table_ref)
             .unwrap_or(&IndexMap::default())
             .iter()
-            .map(|(id, col)| (id.clone(), *col))
+            .map(|(id, col)| (id.clone(), col.clone()))
             .collect()
     }
 }
