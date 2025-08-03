@@ -214,7 +214,7 @@ pub(crate) fn max_aggregate_column_by_index_counts<'a, S: Scalar>(
         }
         Column::Nullable(inner_col, _) => {
             // For nullable columns, apply MAX to the inner column
-            max_aggregate_slice_by_index_counts(alloc, inner_col, counts, indexes)
+            max_aggregate_slice_by_index_counts(alloc, inner_col.as_ref(), counts, indexes)
         }
     }
 }
@@ -253,7 +253,7 @@ pub(crate) fn min_aggregate_column_by_index_counts<'a, S: Scalar>(
         }
         Column::Nullable(inner_col, _) => {
             // For nullable columns, apply MIN to the inner column
-            min_aggregate_slice_by_index_counts(alloc, inner_col, counts, indexes)
+            min_aggregate_slice_by_index_counts(alloc, inner_col.as_ref(), counts, indexes)
         }
     }
 }

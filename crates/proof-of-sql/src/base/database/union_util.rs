@@ -207,7 +207,7 @@ pub fn column_union<'a, S: Scalar>(
                 })
                 .collect();
 
-            let inner_union = combine_columns(&inner_columns, inner_type.as_ref(), alloc)?;
+            let inner_union = column_union(&inner_columns, alloc, inner_type.as_ref().clone())?;
 
             // Combine null bitmaps
             let mut null_iter = columns.iter().flat_map(|col| match col {

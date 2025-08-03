@@ -135,10 +135,11 @@ impl ProverEvaluate for UnionExec {
         let res = table_union(&inputs, alloc, self.schema.clone()).expect("Failed to union tables");
 
         // Store columns in bump allocator to extend lifetime
-        let res_columns = alloc.alloc_slice_fill_iter(res.columns().cloned());
+        let res_columns: Vec<_> = res.columns().cloned().collect();
+        let res_columns_alloc = alloc.alloc_slice_fill_iter(res_columns.iter().cloned());
         // Produce intermediate MLEs for the union
-        for column in res_columns {
-            builder.produce_intermediate_mle(&*column);
+        for column in &*res_columns_alloc {
+            builder.produce_intermediate_mle(column);
         }
         builder.produce_chi_evaluation_length(res.num_rows());
         Ok(res)
