@@ -273,8 +273,10 @@ where
     T0: Copy,
     T1: Copy,
 {
-    let new_column_type =
-        try_add_subtract_column_types_with_scaling(left_column_type, right_column_type)?;
+    let new_column_type = try_add_subtract_column_types_with_scaling(
+        left_column_type.clone(),
+        right_column_type.clone(),
+    )?;
     let new_precision_value = new_column_type
         .precision_value()
         .expect("numeric columns have precision");
@@ -332,8 +334,10 @@ where
     T0: Copy,
     T1: Copy,
 {
-    let new_column_type =
-        try_add_subtract_column_types_with_scaling(left_column_type, right_column_type)?;
+    let new_column_type = try_add_subtract_column_types_with_scaling(
+        left_column_type.clone(),
+        right_column_type.clone(),
+    )?;
     let new_precision_value = new_column_type
         .precision_value()
         .expect("numeric columns have precision");
@@ -391,7 +395,8 @@ where
     T0: Copy,
     T1: Copy,
 {
-    let new_column_type = try_multiply_column_types(left_column_type, right_column_type)?;
+    let new_column_type =
+        try_multiply_column_types(left_column_type.clone(), right_column_type.clone())?;
     let new_precision_value = new_column_type
         .precision_value()
         .expect("numeric columns have precision");
@@ -429,7 +434,8 @@ where
     T0: Copy + Debug + Into<BigInt>,
     T1: Copy + Debug + Into<BigInt>,
 {
-    let new_column_type = try_divide_column_types(left_column_type, right_column_type)?;
+    let new_column_type =
+        try_divide_column_types(left_column_type.clone(), right_column_type.clone())?;
     let new_precision_value = new_column_type
         .precision_value()
         .expect("numeric columns have precision");

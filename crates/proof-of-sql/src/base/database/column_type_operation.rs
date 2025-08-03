@@ -138,7 +138,7 @@ fn try_divide_modulo_column_types(
     rhs: ColumnType,
 ) -> ColumnOperationResult<(ColumnType, ColumnType)> {
     if lhs.is_integer() && lhs.is_signed() && rhs.is_integer() && rhs.is_signed() {
-        Ok((lhs, lhs))
+        Ok((lhs.clone(), lhs))
     } else {
         Err(ColumnOperationError::BinaryOperationInvalidColumnType {
             operator: "/%".to_string(),
@@ -196,7 +196,7 @@ pub fn try_divide_column_types(
 /// Verifies that `from` can be cast to `to`. For now, this supports a limited number of casts.
 #[expect(clippy::missing_panics_doc)]
 pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult<()> {
-    match (from, to) {
+    let result = match (&from, &to) {
         (
             ColumnType::Boolean,
             ColumnType::TinyInt
@@ -226,12 +226,13 @@ pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult
                 && to.scale() == from.scale()
         }
         _ => false,
-    }
-    .then_some(())
-    .ok_or(ColumnOperationError::CastingError {
-        left_type: from,
-        right_type: to,
-    })
+    };
+    result
+        .then_some(())
+        .ok_or(ColumnOperationError::CastingError {
+            left_type: from,
+            right_type: to,
+        })
 }
 
 /// Verifies that `from` can be cast to `to`.
