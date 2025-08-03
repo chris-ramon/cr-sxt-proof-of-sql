@@ -300,11 +300,11 @@ pub fn try_inequality_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperation
         && !matches!(rhs, ColumnType::Decimal75(precision, _) if precision.value() > 38)
         && (lhs.is_numeric() && rhs.is_numeric() && lhs.scale() == rhs.scale()
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::Boolean, ColumnType::Boolean)
             )
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::TimestampTZ(left_tu, _), ColumnType::TimestampTZ(right_tu, _)) if
                 left_tu == right_tu
         )))
@@ -322,7 +322,7 @@ pub fn try_equals_types_with_scaling(
     rhs: ColumnType,
 ) -> ColumnOperationResult<()> {
     (matches!(
-        (lhs, rhs),
+        (&lhs, &rhs),
         (ColumnType::VarChar, ColumnType::VarChar)
             | (ColumnType::VarBinary, ColumnType::VarBinary)
             | (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _))
@@ -350,7 +350,7 @@ pub fn try_inequality_types_with_scaling(
         && !matches!(rhs, ColumnType::Decimal75(precision, _) if precision.value() > 38)
         && (lhs.is_numeric() && rhs.is_numeric()
             || matches!(
-                (lhs, rhs),
+                (&lhs, &rhs),
                 (ColumnType::Boolean, ColumnType::Boolean)
                     | (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _))
             )))
