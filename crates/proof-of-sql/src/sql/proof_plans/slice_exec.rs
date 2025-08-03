@@ -181,7 +181,7 @@ impl ProverEvaluate for SliceExec {
         let (filtered_columns, _) = filter_columns(alloc, &columns, &select);
         // 3. Produce MLEs
         filtered_columns.iter().for_each(|column| {
-            builder.produce_intermediate_mle(column.clone());
+            builder.produce_intermediate_mle(column);
         });
         let res = Table::<'a, S>::try_from_iter_with_options(
             self.get_column_result_fields()

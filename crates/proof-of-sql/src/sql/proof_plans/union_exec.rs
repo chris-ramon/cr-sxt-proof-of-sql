@@ -136,7 +136,7 @@ impl ProverEvaluate for UnionExec {
 
         // Produce intermediate MLEs for the union
         res.columns().for_each(|column| {
-            builder.produce_intermediate_mle(column.clone());
+            builder.produce_intermediate_mle(column);
         });
         builder.produce_chi_evaluation_length(res.num_rows());
         Ok(res)

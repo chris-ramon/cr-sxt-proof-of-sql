@@ -43,7 +43,7 @@ impl ColumnCommitmentMetadata {
         column_type: ColumnType,
         bounds: ColumnBounds,
     ) -> Result<ColumnCommitmentMetadata, InvalidColumnCommitmentMetadata> {
-        match (column_type, bounds) {
+        match (column_type.clone(), bounds) {
             (ColumnType::Uint8, ColumnBounds::Uint8(_))
             | (ColumnType::TinyInt, ColumnBounds::TinyInt(_))
             | (ColumnType::SmallInt, ColumnBounds::SmallInt(_))

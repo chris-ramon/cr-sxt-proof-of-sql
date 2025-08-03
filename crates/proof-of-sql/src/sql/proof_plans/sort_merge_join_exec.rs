@@ -341,7 +341,7 @@ impl ProverEvaluate for SortMergeJoinExec {
             alloc,
         )
         .expect("Can not do sort merge join");
-        let res_hat = alloc.alloc_slice_copy(raw_res_hat.as_slice());
+        let res_hat = alloc.alloc_slice_fill_iter(raw_res_hat.iter().cloned());
         for column in res_hat {
             builder.produce_intermediate_mle(*column);
         }
@@ -472,7 +472,7 @@ impl ProverEvaluate for SortMergeJoinExec {
         )
         .expect("Can not do sort merge join");
         // Store in bump, `\hat{J}` in the protocol
-        let res_hat = alloc.alloc_slice_copy(raw_res_hat.as_slice());
+        let res_hat = alloc.alloc_slice_fill_iter(raw_res_hat.iter().cloned());
 
         let num_rows_res = left_row_indexes.len();
         let chi_res = alloc.alloc_slice_fill_copy(num_rows_res, true);
