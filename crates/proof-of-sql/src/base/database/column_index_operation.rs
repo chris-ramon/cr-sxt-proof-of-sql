@@ -118,7 +118,7 @@ where
             // For nullable columns, apply indexing to both inner column and null bitmap
             match column {
                 Column::Nullable(inner_col, null_bitmap) => {
-                    let indexed_inner = apply_column_to_indexes(alloc, inner_col, indexes)?;
+                    let indexed_inner = apply_column_to_indexes(inner_col, alloc, indexes)?;
                     let indexed_nulls = apply_slice_to_indexes(null_bitmap, indexes)?;
                     Ok(Column::Nullable(
                         Box::new(indexed_inner),

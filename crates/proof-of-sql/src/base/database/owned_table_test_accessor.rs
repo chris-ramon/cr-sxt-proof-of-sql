@@ -143,7 +143,10 @@ impl<CP: CommitmentEvaluationProof> DataAccessor<CP::Scalar> for OwnedTableTestA
                         let scals: &mut [CP::Scalar] = self
                             .alloc
                             .alloc_slice_fill_iter(col.iter().map(|s| CP::Scalar::from(s)));
-                        Column::VarChar((col.as_slice(), scals))
+                        let col_strs: &mut [&str] = self
+                            .alloc
+                            .alloc_slice_fill_iter(col.iter().map(|s| s.as_str()));
+                        Column::VarChar((col_strs, scals))
                     }
                     OwnedColumn::VarBinary(col) => {
                         let col_as_slices: &mut [&[u8]] = self

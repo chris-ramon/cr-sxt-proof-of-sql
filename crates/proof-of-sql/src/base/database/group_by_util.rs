@@ -213,8 +213,31 @@ pub(crate) fn max_aggregate_column_by_index_counts<'a, S: Scalar>(
             unreachable!("MAX can not be applied to varchar")
         }
         Column::Nullable(inner_col, _) => {
-            // For nullable columns, apply MAX to the inner column
-            max_aggregate_slice_by_index_counts(alloc, inner_col.as_ref(), counts, indexes)
+            // For nullable columns, apply MAX to the inner column data
+            match inner_col.as_ref() {
+                Column::TinyInt(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::SmallInt(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Int(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::BigInt(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Int128(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Decimal75(_, _, data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Scalar(data) => {
+                    max_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                _ => unreachable!("MAX can only be applied to numeric columns"),
+            }
         }
     }
 }
@@ -252,8 +275,31 @@ pub(crate) fn min_aggregate_column_by_index_counts<'a, S: Scalar>(
             unreachable!("MIN can not be applied to varchar")
         }
         Column::Nullable(inner_col, _) => {
-            // For nullable columns, apply MIN to the inner column
-            min_aggregate_slice_by_index_counts(alloc, inner_col.as_ref(), counts, indexes)
+            // For nullable columns, apply MIN to the inner column data
+            match inner_col.as_ref() {
+                Column::TinyInt(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::SmallInt(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Int(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::BigInt(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Int128(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Decimal75(_, _, data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                Column::Scalar(data) => {
+                    min_aggregate_slice_by_index_counts(alloc, data, counts, indexes)
+                }
+                _ => unreachable!("MIN can only be applied to numeric columns"),
+            }
         }
     }
 }

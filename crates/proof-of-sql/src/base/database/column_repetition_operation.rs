@@ -136,7 +136,7 @@ pub trait RepetitionOp {
                 // For nullable columns, repeat the inner column and the null bitmap
                 match column {
                     Column::Nullable(inner_col, null_bitmap) => {
-                        let repeated_inner = Self::repeat_column(alloc, inner_col, n);
+                        let repeated_inner = Self::repeat_column(alloc, inner_col.as_ref(), n);
                         let mut null_iter = Self::op(null_bitmap, n);
                         let repeated_nulls = alloc.alloc_slice_fill_with(len, |_| {
                             null_iter

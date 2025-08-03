@@ -83,7 +83,7 @@ pub fn filter_column_by_index<'a, S: Scalar>(
             alloc.alloc_slice_fill_iter(indexes.iter().map(|&i| col[i])),
         ),
         Column::Nullable(inner_col, null_bitmap) => {
-            let filtered_inner = filter_column(alloc, inner_col, indexes);
+            let filtered_inner = filter_column_by_index(alloc, inner_col.as_ref(), indexes);
             let filtered_nulls =
                 alloc.alloc_slice_fill_iter(indexes.iter().map(|&i| null_bitmap[i]));
             Column::Nullable(Box::new(filtered_inner), filtered_nulls)
