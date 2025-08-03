@@ -179,15 +179,17 @@ impl ProverEvaluate for SliceExec {
         let output_length = max_index - offset_index;
         // Compute filtered_columns
         let (filtered_columns, _) = filter_columns(alloc, &columns, &select);
+        // Store columns in bump allocator to extend lifetime
+        let filtered_columns_alloc = alloc.alloc_slice_fill_iter(filtered_columns.iter().cloned());
         // 3. Produce MLEs
-        for column in &filtered_columns {
+        for column in filtered_columns_alloc {
             builder.produce_intermediate_mle(column);
         }
         let res = Table::<'a, S>::try_from_iter_with_options(
             self.get_column_result_fields()
                 .into_iter()
                 .map(|expr| expr.name())
-                .zip(filtered_columns.clone()),
+                .zip(filtered_columns_alloc.iter().cloned()),
             TableOptions::new(Some(output_length)),
         )
         .expect("Failed to create table from iterator");

@@ -433,7 +433,7 @@ impl ProverEvaluate for GroupByExec {
         let chi_m = alloc.alloc_slice_fill_copy(m, true);
 
         for column in &group_by_result_columns {
-            builder.produce_intermediate_mle(*column);
+            builder.produce_intermediate_mle(column);
         }
         let g_out_fold = alloc.alloc_slice_fill_copy(m, Zero::zero());
         fold_columns(g_out_fold, alpha, beta, &group_by_result_columns);
@@ -489,7 +489,7 @@ impl ProverEvaluate for GroupByExec {
         .expect("Failed to create table from column references");
         // 5. Produce MLEs
         for column in sum_result_columns_iter.chain(iter::once(Column::BigInt(count_column))) {
-            builder.produce_intermediate_mle(column);
+            builder.produce_intermediate_mle(&column);
         }
         // 6. Prove group by
 

@@ -199,15 +199,17 @@ impl ProverEvaluate for FilterExec {
 
         // Compute filtered_columns and indexes
         let (filtered_columns, _) = filter_columns(alloc, &columns, selection);
+        // Store columns in bump allocator to extend lifetime
+        let filtered_columns_alloc = alloc.alloc_slice_fill_iter(filtered_columns.iter().cloned());
         // 3. Produce MLEs
-        for column in &filtered_columns {
+        for column in filtered_columns_alloc {
             builder.produce_intermediate_mle(column);
         }
         let res = Table::<'a, S>::try_from_iter_with_options(
             self.aliased_results
                 .iter()
                 .map(|expr| expr.alias.clone())
-                .zip(filtered_columns.clone()),
+                .zip(filtered_columns_alloc.iter().cloned()),
             TableOptions::new(Some(output_length)),
         )
         .expect("Failed to create table from iterator");
