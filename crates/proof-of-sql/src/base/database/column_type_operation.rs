@@ -239,7 +239,7 @@ pub fn try_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult
 /// For example Deciaml(6,1) can be cast to Decimal(7,1), but not vice versa.
 #[expect(clippy::missing_panics_doc)]
 pub fn try_scale_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperationResult<()> {
-    match (from, to) {
+    let result = match (&from, &to) {
         (
             ColumnType::TinyInt
             | ColumnType::Uint8
@@ -253,25 +253,26 @@ pub fn try_scale_cast_types(from: ColumnType, to: ColumnType) -> ColumnOperation
             let from_precision = i16::from(from.precision_value().unwrap());
             let from_scale = i16::from(from.scale().unwrap());
             let to_precision = i16::from(precision.value());
-            let to_scale = i16::from(scale);
+            let to_scale = i16::from(*scale);
             to_scale >= from_scale && (to_precision - to_scale) >= (from_precision - from_scale)
         }
         (ColumnType::TimestampTZ(_, _), ColumnType::TimestampTZ(_, _)) => {
             to.scale().unwrap() >= from.scale().unwrap()
         }
         _ => false,
-    }
-    .then_some(())
-    .ok_or(ColumnOperationError::ScaleCastingError {
-        left_type: from,
-        right_type: to,
-    })
+    };
+    result
+        .then_some(())
+        .ok_or(ColumnOperationError::ScaleCastingError {
+            left_type: from,
+            right_type: to,
+        })
 }
 
 /// Verfies that the equality operator can be used on the two types
 pub fn try_equals_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperationResult<()> {
     (matches!(
-        (lhs, rhs),
+        (&lhs, &rhs),
         (ColumnType::VarChar, ColumnType::VarChar)
             | (ColumnType::VarBinary, ColumnType::VarBinary)
             | (ColumnType::Boolean, ColumnType::Boolean)
@@ -279,7 +280,7 @@ pub fn try_equals_types(lhs: ColumnType, rhs: ColumnType) -> ColumnOperationResu
             | (ColumnType::Scalar, _)
     ) || (lhs.is_numeric() && rhs.is_numeric() && lhs.scale() == rhs.scale())
         || matches!(
-            (lhs, rhs),
+            (&lhs, &rhs),
             (ColumnType::TimestampTZ(left_tu, _), ColumnType::TimestampTZ(right_tu, _)) if
                 left_tu == right_tu
         ))
